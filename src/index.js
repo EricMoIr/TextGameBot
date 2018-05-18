@@ -1,12 +1,19 @@
-/* @flow */
-
 const Discord = require('discord.js');
-const {token, prefix} = require("./config.json");
+const {token, prefix, connectionString} = require("../config.js");
 const commands = require("./commands");
+const mongoose = require('mongoose');
+const seed = require("./util/seed");
+
+mongoose.connect(connectionString);
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
 const client = new Discord.Client();
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    //seed();
 });
 
 client.on('message', msg => {
@@ -21,8 +28,8 @@ client.on('message', msg => {
     }
     else{
         for(const defCommand in commands){
-            if(command in commands[defCommand].aliases){
-                commands[command].run(msg, args);
+            if(commands[defCommand].aliases.has(command)){
+                commands[defCommand].run(msg, args);
                 return;
             }
         }
